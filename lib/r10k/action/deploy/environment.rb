@@ -6,6 +6,7 @@ require 'r10k/action/visitor'
 require 'r10k/action/base'
 require 'r10k/action/deploy/deploy_helpers'
 require 'json'
+require 'r10k/git/rugged/cache'
 
 module R10K
   module Action
@@ -113,6 +114,10 @@ module R10K
 
           if @settings.dig(:overrides, :purging, :purge_levels).include?(:deployment)
             logger.debug("Purging unmanaged environments for deployment...")
+            deployment.sources.each do |source|
+              source.cache.sync!
+              source.instance_variable_set(:@environments, [])
+            end
             deployment.purge!
           end
         ensure
